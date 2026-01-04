@@ -1,0 +1,43 @@
+export interface Lot {
+  id: string;
+  title: string;
+  description: string | null;
+  mpn: string | null;
+  manufacturer: string | null;
+  category_id: string | null;
+  condition: 'new' | 'used' | 'refurbished' | 'for-parts' | null;
+  quantity: number;
+  starting_price: number;
+  current_price: number;
+  reserve_price: number;
+  reserve_met: boolean;
+  bid_increment: number;
+  start_time: string;
+  end_time: string;
+  original_end_time: string;
+  extended: boolean;
+  extension_count: number;
+  bid_count: number;
+  winning_bidder_id: string | null;
+  winning_bidder_name: string | null;
+  last_bid_time: string | null;
+  status: 'draft' | 'scheduled' | 'active' | 'sold' | 'unsold' | 'cancelled';
+  images: string[];
+  pdfs: string[];
+  thumbnail_url: string | null;
+  hide_bid_history: boolean;
+  hide_time_remaining: boolean;
+  featured_lot: boolean;
+  keywords: string[];
+  allow_offers: boolean;
+  minimum_offer: number | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  sold_at: string | null;
+  sold_to: string | null;
+  sold_price: number | null;
+  view_count: number;
+  watch_count: number;
+}
+
