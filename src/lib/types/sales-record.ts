@@ -28,3 +28,4 @@ export interface SalesRecord {
   customer_notes: string | null;
 }
 
+

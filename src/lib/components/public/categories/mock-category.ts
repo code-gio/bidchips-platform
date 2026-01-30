@@ -1,0 +1,73 @@
+import type { Category } from "$lib/types/category";
+
+/**
+ * Mock categories for design-only pages (home, categories).
+ */
+export function createMockCategories(): Category[] {
+	return [
+		{
+			id: "cat-1",
+			name: "Microcontrollers",
+			slug: "microcontrollers",
+			description: "MCUs and embedded processors",
+			parent_id: null,
+			icon: null,
+			color: "#3b82f6",
+			image_url: null,
+			sort_order: 0,
+			lot_count: 24,
+			active_lot_count: 18,
+			is_active: true,
+			created_at: new Date().toISOString(),
+			updated_at: new Date().toISOString(),
+		},
+		{
+			id: "cat-2",
+			name: "Resistors",
+			slug: "resistors",
+			description: "Through-hole and SMD resistors",
+			parent_id: null,
+			icon: null,
+			color: "#22c55e",
+			image_url: null,
+			sort_order: 1,
+			lot_count: 56,
+			active_lot_count: 42,
+			is_active: true,
+			created_at: new Date().toISOString(),
+			updated_at: new Date().toISOString(),
+		},
+		{
+			id: "cat-3",
+			name: "Capacitors",
+			slug: "capacitors",
+			description: "Electrolytic, ceramic, and film capacitors",
+			parent_id: null,
+			icon: null,
+			color: "#eab308",
+			image_url: null,
+			sort_order: 2,
+			lot_count: 38,
+			active_lot_count: 30,
+			is_active: true,
+			created_at: new Date().toISOString(),
+			updated_at: new Date().toISOString(),
+		},
+		{
+			id: "cat-4",
+			name: "Connectors",
+			slug: "connectors",
+			description: "Headers, sockets, and cable connectors",
+			parent_id: null,
+			icon: null,
+			color: "#a855f7",
+			image_url: null,
+			sort_order: 3,
+			lot_count: 19,
+			active_lot_count: 14,
+			is_active: true,
+			created_at: new Date().toISOString(),
+			updated_at: new Date().toISOString(),
+		},
+	];
+}
