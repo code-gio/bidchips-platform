@@ -13,7 +13,7 @@
  *     },
  *     {
  *       "path": "/api/cron/ending-soon-notifications",
- *       "schedule": "*/5 * * * *"
+ *       "schedule": "*" + "/5 * * * *"  // every 5 min
  *     }
  *   ]
  * }
