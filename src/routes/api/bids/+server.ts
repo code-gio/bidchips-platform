@@ -134,7 +134,7 @@ export const POST: RequestHandler = async (event) => {
 
     // Update user stats
     await supabaseAdmin
-      .from("users")
+      .from("profiles")
       .update({
         total_bids: (user.total_bids || 0) + 1,
       })

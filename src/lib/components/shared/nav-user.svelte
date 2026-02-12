@@ -10,10 +10,20 @@
   import { goto, invalidate } from "$app/navigation";
   import { getInitials } from "$lib/utils";
 
+  const rawAvatar = $derived(page.data.profile?.avatar_url ?? "");
+  /** For private bucket: use signed URL endpoint when avatar_url is path or extract path from storage URL */
+  const avatarSrc = $derived.by(() => {
+    const v = rawAvatar;
+    if (!v) return "";
+    if (!v.startsWith("http")) return `/api/user/avatar/signed?path=${encodeURIComponent(v)}`;
+    const match = v.match(/\/avatars\/(.+)$/);
+    if (match) return `/api/user/avatar/signed?path=${encodeURIComponent(match[1])}`;
+    return v;
+  });
   const user = $derived({
     name: page.data.profile?.full_name ?? page.data.profile?.username ?? "User",
     email: page.data.profile?.email ?? page.data.user?.email ?? "",
-    avatar: page.data.profile?.avatar_url ?? "",
+    avatar: avatarSrc,
   });
 
   const sidebar = Sidebar.useSidebar();

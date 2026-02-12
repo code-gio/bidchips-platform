@@ -34,7 +34,7 @@ export const PUT: RequestHandler = async (event) => {
     }>(event);
 
     const { data, error } = await supabaseAdmin
-      .from("users")
+      .from("profiles")
       .update({
         ...body,
         updated_at: new Date().toISOString(),

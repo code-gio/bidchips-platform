@@ -83,7 +83,8 @@
         toast.success("Account created successfully", {
           description: "Please check your email to verify your account.",
         });
-        await goto("/");
+        const email = result.data?.form?.data?.email ?? "";
+        await goto("/verify-email?email=" + encodeURIComponent(email));
       }
     },
   });

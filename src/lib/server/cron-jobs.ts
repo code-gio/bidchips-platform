@@ -105,14 +105,14 @@ export async function closeAuctions() {
 
           // Update user stats
           const { data: winner } = await supabaseAdmin
-            .from("users")
+            .from("profiles")
             .select("total_wins, total_spent")
             .eq("id", lot.winning_bidder_id)
             .single();
 
           if (winner) {
             await supabaseAdmin
-              .from("users")
+              .from("profiles")
               .update({
                 total_wins: (winner.total_wins || 0) + 1,
                 total_spent: (winner.total_spent || 0) + lot.current_price,

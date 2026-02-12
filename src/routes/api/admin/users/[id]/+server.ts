@@ -16,7 +16,7 @@ export const GET: RequestHandler = async (event) => {
     }
 
     const { data, error } = await supabaseAdmin
-      .from("users")
+      .from("profiles")
       .select("*")
       .eq("id", userId)
       .single();
@@ -47,7 +47,7 @@ export const PUT: RequestHandler = async (event) => {
     }
 
     const { data, error } = await supabaseAdmin
-      .from("users")
+      .from("profiles")
       .update({
         ...body,
         updated_at: new Date().toISOString(),

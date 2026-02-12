@@ -26,10 +26,10 @@ export const GET: RequestHandler = async (event) => {
       avgSalePrice30d,
     ] = await Promise.all([
       // Total users
-      supabaseAdmin.from("users").select("id", { count: "exact", head: true }),
+      supabaseAdmin.from("profiles").select("id", { count: "exact", head: true }),
       // Active users (last 30 days)
       supabaseAdmin
-        .from("users")
+        .from("profiles")
         .select("id", { count: "exact", head: true })
         .gte("last_login_at", thirtyDaysAgo.toISOString()),
       // Total lots

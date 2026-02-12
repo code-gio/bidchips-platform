@@ -2,7 +2,8 @@
 // Database Types
 // ============================================
 
-import type { User } from './user';
+import type { Profile } from './profile';
+import type { UserAddress } from './user-address';
 import type { Category } from './category';
 import type { Lot } from './lot';
 import type { Bid } from './bid';
@@ -16,10 +17,15 @@ import type { ActivityLog } from './activity-log';
 export interface Database {
   public: {
     Tables: {
-      users: {
-        Row: User;
-        Insert: Omit<User, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<User, 'id' | 'auth_id'>>;
+      profiles: {
+        Row: Profile;
+        Insert: Omit<Profile, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<Profile, 'id'>>;
+      };
+      user_addresses: {
+        Row: UserAddress;
+        Insert: Omit<UserAddress, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<UserAddress, 'id' | 'user_id'>>;
       };
       categories: {
         Row: Category;

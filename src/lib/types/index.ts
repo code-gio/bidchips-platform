@@ -10,5 +10,7 @@ export * from './offer';
 export * from './sales-record';
 export * from './settings';
 export * from './user';
+export * from './user-address';
+export * from './profile';
 export * from './watchlist';
 

@@ -11,7 +11,7 @@ export const GET: RequestHandler = async (event) => {
     const params = getQueryParams(event);
 
     let query = event.locals.supabase
-      .from("users")
+      .from("profiles")
       .select("*")
       .order("created_at", { ascending: false });
 

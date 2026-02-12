@@ -174,15 +174,21 @@ export const actions: Actions = {
       }
 
       // Database trigger will create the profile automatically
-      // We just need to update it with the username after the trigger runs
-      // Wait a moment for the trigger to complete, then update the profile
+      // We just need to update it with profile fields after the trigger runs
+      const displayName = [firstName, lastName].filter(Boolean).join(" ").trim() || email;
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       const { error: profileError } = await supabaseAdmin
         .from("profiles")
         .update({
+          first_name: firstName,
+          last_name: lastName,
+          display_name: displayName,
           username: validatedUsername,
+          time_zone: "UTC",
+          avatar_url: null,
           email,
+          role: "user",
           updated_at: new Date().toISOString(),
         })
         .eq("id", authData.user.id);

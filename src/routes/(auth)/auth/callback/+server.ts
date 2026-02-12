@@ -1,4 +1,5 @@
 import { redirect } from "@sveltejs/kit";
+import { ensureUserFromAuth, getProfileOnboarding } from "$lib/server/auth.js";
 
 export const GET = async (event) => {
   const {
@@ -9,13 +10,16 @@ export const GET = async (event) => {
   const next = url.searchParams.get("next") ?? "/";
 
   if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      // Use the next parameter for flexible redirects
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error && data.user) {
+      await ensureUserFromAuth(data.user);
+      const { needsOnboarding } = await getProfileOnboarding(data.user.id);
+      if (needsOnboarding) {
+        throw redirect(303, "/onboarding");
+      }
       throw redirect(303, next);
     }
   }
 
-  // Return the user to an error page with instructions
   throw redirect(303, "/auth/error");
 };

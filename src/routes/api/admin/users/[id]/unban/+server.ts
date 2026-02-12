@@ -17,7 +17,7 @@ export const PUT: RequestHandler = async (event) => {
 
     // Get user
     const { data: targetUser, error: userError } = await supabaseAdmin
-      .from("users")
+      .from("profiles")
       .select("*")
       .eq("id", userId)
       .single();
@@ -31,7 +31,7 @@ export const PUT: RequestHandler = async (event) => {
     }
 
     const { data, error } = await supabaseAdmin
-      .from("users")
+      .from("profiles")
       .update({
         is_banned: false,
         updated_at: new Date().toISOString(),

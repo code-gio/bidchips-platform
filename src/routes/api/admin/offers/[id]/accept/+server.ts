@@ -130,7 +130,7 @@ export const PUT: RequestHandler = async (event) => {
 
     // Get buyer user record
     const { data: buyer } = await supabaseAdmin
-      .from("users")
+      .from("profiles")
       .select("*")
       .eq("id", offer.user_id)
       .single();
@@ -138,7 +138,7 @@ export const PUT: RequestHandler = async (event) => {
     if (buyer) {
       // Update buyer stats
       await supabaseAdmin
-        .from("users")
+        .from("profiles")
         .update({
           total_wins: (buyer.total_wins || 0) + 1,
           total_spent: (buyer.total_spent || 0) + offer.amount,

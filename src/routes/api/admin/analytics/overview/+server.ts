@@ -131,7 +131,7 @@ export const GET: RequestHandler = async (event) => {
     const winnerIds = topLotsData?.filter((lot) => lot.winning_bidder_id).map((lot) => lot.winning_bidder_id) || [];
     const { data: winners } = winnerIds.length > 0
       ? await supabaseAdmin
-          .from("users")
+          .from("profiles")
           .select("id, email")
           .in("id", winnerIds)
       : { data: null };

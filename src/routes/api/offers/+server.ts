@@ -86,7 +86,7 @@ export const POST: RequestHandler = async (event) => {
 
     // Create notification for admins
     const { data: admins } = await supabaseAdmin
-      .from("users")
+      .from("profiles")
       .select("id")
       .eq("role", "admin");
 
