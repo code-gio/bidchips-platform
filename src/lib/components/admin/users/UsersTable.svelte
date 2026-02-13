@@ -46,9 +46,7 @@
     return user.email.substring(0, 2).toUpperCase();
   }
 
-  $effect(() => {
-    console.log(users);
-  });
+
 </script>
 
 <Table.Root>

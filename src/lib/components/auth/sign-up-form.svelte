@@ -60,6 +60,12 @@
     if (Array.isArray(error)) {
       return error.map((e) => ({ message: typeof e === "string" ? e : String(e) }));
     }
+    // Nested shape e.g. { agreeToTerms: ["message"] } from refine path
+    if (typeof error === "object" && !Array.isArray(error)) {
+      const firstKey = Object.keys(error)[0];
+      const nested = firstKey != null ? error[firstKey] : undefined;
+      if (Array.isArray(nested)) return normalizeErrors(nested);
+    }
     return [{ message: String(error) }];
   }
 
@@ -99,7 +105,9 @@
     showPassword = !showPassword;
   }
 
+
   $effect(() => {
+
     if (isSubmitting) {
       showPassword = false;
     }
@@ -122,6 +130,7 @@
         <FieldLabel for="firstName">First Name</FieldLabel>
         <Input
           id="firstName"
+          name="firstName"
           bind:value={$formData.firstName}
           placeholder="John"
           autocomplete="given-name"
@@ -139,6 +148,7 @@
         <FieldLabel for="lastName">Last Name</FieldLabel>
         <Input
           id="lastName"
+          name="lastName"
           bind:value={$formData.lastName}
           placeholder="Smith"
           autocomplete="family-name"
@@ -157,6 +167,7 @@
       <FieldLabel for="username">Username</FieldLabel>
       <Input
         id="username"
+        name="username"
         bind:value={$formData.username}
         placeholder="johndoe"
         autocomplete="username"
@@ -177,6 +188,7 @@
       <FieldLabel for="email">Email</FieldLabel>
       <Input
         id="email"
+        name="email"
         type="email"
         bind:value={$formData.email}
         placeholder="you@email.com"
@@ -197,6 +209,7 @@
         <div class="relative">
           <Input
             id="password"
+            name="password"
             bind:value={$formData.password}
             type={showPassword ? "text" : "password"}
             placeholder="Create a strong password"
@@ -269,6 +282,12 @@
   <Field>
     <FieldContent>
       <div class="flex items-center gap-2">
+        <input
+          type="hidden"
+          name="agreeToTerms"
+          value={$formData.agreeToTerms ? "true" : "false"}
+          aria-hidden="true"
+        />
         <Checkbox
           id="terms"
           bind:checked={$formData.agreeToTerms}

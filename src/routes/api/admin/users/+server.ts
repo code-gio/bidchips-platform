@@ -13,20 +13,20 @@ export const GET: RequestHandler = async (event) => {
     await requireAuth(event);
     const params = getQueryParams(event);
 
-    let query = event.locals.supabase
+    let query = supabaseAdmin
       .from("profiles")
       .select("*")
-    // .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false });
 
-    // const role = params.get("role");
-    // if (role) {
-    //   query = query.eq("role", role);
-    // }
+    const role = params.get("role");
+    if (role) {
+      query = query.eq("role", role);
+    }
 
-    // const isBanned = params.get("is_banned");
-    // if (isBanned === "true") {
-    //   query = query.eq("is_banned", true);
-    // }
+    const isBanned = params.get("is_banned");
+    if (isBanned === "true") {
+      query = query.eq("is_banned", true);
+    }
 
     // Pagination
     const page = parseInt(params.get("page") || "1");
@@ -37,8 +37,6 @@ export const GET: RequestHandler = async (event) => {
     query = query.range(from, to);
 
     const { data, error } = await query;
-
-    console.log(data)
 
     if (error) {
       return errorResponse(error.message, 500);

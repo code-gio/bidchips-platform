@@ -213,11 +213,7 @@
     }
   }
 
-  $effect(() => {
-    console.log("formData", $formData);
-    console.log("initialData", initialData);
-    console.log("initialGoal", initialGoal);
-  });
+
 </script>
 
 <form method="POST" use:enhance class="flex flex-col space-y-5" novalidate>

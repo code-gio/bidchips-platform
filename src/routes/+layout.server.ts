@@ -8,8 +8,6 @@ export const load: LayoutServerLoad = async ({
 }) => {
   const { session, user } = await safeGetSession();
 
-  // console.log("[LayoutServer] session", session);
-  // console.log("[LayoutServer] user", user);
 
   const { data: profile } = await supabaseAdmin
     .from("profiles")

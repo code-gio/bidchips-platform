@@ -50,10 +50,11 @@ export const signUpSchema = z.object({
     .string()
     .min(6, "Password must be at least 6 characters long")
     .max(100, "Password must be less than 100 characters"),
-  agreeToTerms: z.boolean().refine((val) => val === true, {
-    message: "You must agree to the terms and conditions",
-    path: ["agreeToTerms"],
-  }),
+  agreeToTerms: z.coerce
+    .boolean()
+    .refine((val) => val === true, {
+      message: "You must agree to the terms and conditions",
+    }),
 });
 
 export type SignUpSchema = typeof signUpSchema;

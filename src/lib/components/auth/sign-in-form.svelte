@@ -62,6 +62,7 @@
       <FieldLabel for="email">Email</FieldLabel>
       <Input
         id="email"
+        name="email"
         bind:value={$formData.email}
         type="email"
         placeholder="you@email.com"
@@ -89,6 +90,7 @@
       <div class="relative">
         <Input
           id="password"
+          name="password"
           bind:value={$formData.password}
           type={showPassword ? "text" : "password"}
           placeholder="Enter your password"
