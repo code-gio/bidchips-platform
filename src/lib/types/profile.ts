@@ -10,11 +10,18 @@ export interface Profile {
   company: string | null;
   phone: string | null;
   avatar_url: string | null;
+  /** Crop params for displaying the avatar (same as in crop editor) */
+  avatar_crop_x?: number | null;
+  avatar_crop_y?: number | null;
+  avatar_crop_scale?: number | null;
+  avatar_crop_size?: number | null;
+  avatar_image_width?: number | null;
+  avatar_image_height?: number | null;
   address_street: string | null;
   address_city: string | null;
   address_state: string | null;
   address_zip: string | null;
-  address_country: string | null;
+  country: string | null;
   tagline: string | null;
   bio: string | null;
   language: string | null;

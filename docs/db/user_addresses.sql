@@ -1,4 +1,5 @@
--- User addresses table: multiple addresses per user
+-- DEPRECATED: Use profile_addresses.sql instead (table profile_addresses, column profile_id, recipient_name).
+-- User addresses table: multiple addresses per user (legacy name)
 create table public.user_addresses (
   id uuid not null default gen_random_uuid(),
   user_id uuid not null,

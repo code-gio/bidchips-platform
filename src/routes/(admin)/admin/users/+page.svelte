@@ -23,7 +23,14 @@
   let selectedUser = $state<User | null>(null);
   let userToUnban = $state<User | null>(null);
 
+  let { data } = $props();
+
+
+
+  const currentUser = $derived(data.profile);
+
   onMount(async () => {
+    console.log("fetching users");
     await fetchUsers();
     isLoading = false;
   });
@@ -33,6 +40,7 @@
       const res = await fetch("/api/admin/users");
       if (res.ok) {
         const data = await res.json();
+        console.log(data);
         if (data.success) {
           // Handle both { data: [...] } and { data: { data: [...] } } formats
           users = Array.isArray(data.data) ? data.data : (data.data?.data || []);
@@ -242,6 +250,7 @@
         onBan={handleBanClick}
         onUnban={handleUnbanClick}
         onChangeRole={handleChangeRole}
+        currentUser={currentUser}
       />
     {/if}
   </div>

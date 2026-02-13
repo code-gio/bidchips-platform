@@ -55,7 +55,7 @@ export async function ensureUserFromAuth(authUser: AuthUser): Promise<void> {
       address_city: null,
       address_state: null,
       address_zip: null,
-      address_country: "US",
+      country: "US",
       email_notify_outbid: true,
       email_notify_won: true,
       email_notify_ending_soon: true,

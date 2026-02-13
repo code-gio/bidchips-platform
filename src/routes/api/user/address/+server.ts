@@ -14,7 +14,7 @@ export const PUT: RequestHandler = async (event) => {
       address_city?: string;
       address_state?: string;
       address_zip?: string;
-      address_country?: string;
+      country?: string;
     }>(event);
 
     const { data, error } = await supabaseAdmin

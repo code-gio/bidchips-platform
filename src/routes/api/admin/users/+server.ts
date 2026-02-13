@@ -1,29 +1,32 @@
-import { json, type RequestHandler } from "@sveltejs/kit";
-import { requireAdmin, getQueryParams, successResponse, errorResponse } from "$lib/server/api-helpers";
+import type { RequestHandler } from "@sveltejs/kit";
+import { requireAuth, getQueryParams, successResponse, errorResponse } from "$lib/server/api-helpers";
+import { supabaseAdmin } from "$lib/server/auth";
+import { processProfilesWithAvatars } from "$lib/server/storage";
 
 /**
  * GET /api/admin/users
- * Get all users
+ * Get all users (any authenticated user with completed onboarding)
  */
 export const GET: RequestHandler = async (event) => {
   try {
-    await requireAdmin(event);
+    // await requireAdmin(event);
+    await requireAuth(event);
     const params = getQueryParams(event);
 
     let query = event.locals.supabase
       .from("profiles")
       .select("*")
-      .order("created_at", { ascending: false });
+    // .order("created_at", { ascending: false });
 
-    const role = params.get("role");
-    if (role) {
-      query = query.eq("role", role);
-    }
+    // const role = params.get("role");
+    // if (role) {
+    //   query = query.eq("role", role);
+    // }
 
-    const isBanned = params.get("is_banned");
-    if (isBanned === "true") {
-      query = query.eq("is_banned", true);
-    }
+    // const isBanned = params.get("is_banned");
+    // if (isBanned === "true") {
+    //   query = query.eq("is_banned", true);
+    // }
 
     // Pagination
     const page = parseInt(params.get("page") || "1");
@@ -35,12 +38,16 @@ export const GET: RequestHandler = async (event) => {
 
     const { data, error } = await query;
 
+    console.log(data)
+
     if (error) {
       return errorResponse(error.message, 500);
     }
 
+    const dataWithSignedAvatars = await processProfilesWithAvatars(supabaseAdmin, data ?? []);
+
     return successResponse({
-      data,
+      data: dataWithSignedAvatars,
       pagination: { page, limit },
     });
   } catch (error: any) {

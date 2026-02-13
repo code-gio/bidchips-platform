@@ -18,11 +18,40 @@
   import { toast } from "svelte-sonner";
   import { goto } from "$app/navigation";
 
-  let props = $props<{ data: SuperValidated<Infer<SignUpSchema>> }>();
+  let { data }: { data: SuperValidated<Infer<SignUpSchema>> } = $props();
 
   let showPassword = $state(false);
   let isSubmitting = $state(false);
   let passwordFocused = $state(false);
+
+  // Call superForm only once. If we call it again when the parent re-renders (e.g. after
+  // invalidate("supabase:auth")), it re-initializes with empty data and the server gets empty form.
+  let formInstance = $state<ReturnType<typeof superForm<Infer<SignUpSchema>>> | null>(null);
+  if (formInstance === null) {
+    formInstance = superForm(data, {
+      validators: zod4Client(signUpSchema),
+      applyAction: "never",
+      onSubmit: () => {
+        isSubmitting = true;
+      },
+      onResult: async ({ result }) => {
+        isSubmitting = false;
+        if (result.type === "failure") {
+          toast.error(result.data?.message || "Sign up failed", {
+            description: "Please check your input and try again.",
+          });
+          return;
+        }
+        if (result.type === "success") {
+          toast.success("Account created successfully", {
+            description: "Please check your email to verify your account.",
+          });
+          const email = result.data?.form?.data?.email ?? "";
+          await goto("/verify-email?email=" + encodeURIComponent(email));
+        }
+      },
+    });
+  }
 
   // Helper function to normalize superforms errors to FieldError format
   function normalizeErrors(error: any): { message?: string }[] | undefined {
@@ -64,36 +93,11 @@
     }
   }
 
-  const form = superForm(props.data, {
-    validators: zod4Client(signUpSchema),
-    onSubmit: () => {
-      isSubmitting = true;
-    },
-    onResult: async ({ result }) => {
-      isSubmitting = false;
-
-      if (result.type === "failure") {
-        toast.error(result.data?.message || "Sign up failed", {
-          description: "Please check your input and try again.",
-        });
-        return;
-      }
-
-      if (result.type === "success") {
-        toast.success("Account created successfully", {
-          description: "Please check your email to verify your account.",
-        });
-        const email = result.data?.form?.data?.email ?? "";
-        await goto("/verify-email?email=" + encodeURIComponent(email));
-      }
-    },
-  });
+  const { form: formData, enhance, errors } = formInstance!;
 
   function togglePasswordVisibility() {
     showPassword = !showPassword;
   }
-
-  const { form: formData, enhance, errors } = form;
 
   $effect(() => {
     if (isSubmitting) {

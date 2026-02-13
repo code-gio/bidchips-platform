@@ -1,8 +1,8 @@
 <script lang="ts">
-  import * as Drawer from "$lib/components/ui/drawer/index.js";
+  import * as Sheet from "$lib/components/ui/sheet/index.js";
   import * as Card from "$lib/components/ui/card/index.js";
   import * as Table from "$lib/components/ui/table/index.js";
-  import * as Badge from "$lib/components/ui/badge/index.js";
+  import Badge from "$lib/components/ui/badge/badge.svelte";
   import * as Avatar from "$lib/components/ui/avatar/index.js";
   import { Button } from "$lib/components/ui/button/index.js";
   import { Separator } from "$lib/components/ui/separator/index.js";
@@ -50,23 +50,26 @@
       user.address_city,
       user.address_state,
       user.address_zip,
-      user.address_country,
+      user.country,
     ].filter(Boolean);
     return parts.join(", ") || "No address on file";
   }
 </script>
 
-<Drawer.Root bind:open>
-  <Drawer.Content class="sm:max-w-2xl">
-    <Drawer.Header>
-      <Drawer.Title>User Details</Drawer.Title>
-      <Drawer.Description>
+<Sheet.Root bind:open>
+  <Sheet.Content
+    side="right"
+    class="flex h-full max-h-full flex-col sm:max-w-2xl"
+  >
+    <Sheet.Header>
+      <Sheet.Title>User Details</Sheet.Title>
+      <Sheet.Description>
         View and manage user information
-      </Drawer.Description>
-    </Drawer.Header>
+      </Sheet.Description>
+    </Sheet.Header>
 
     {#if user}
-      <div class="space-y-6 px-4 pb-4">
+      <div class="min-h-0 flex-1 space-y-6 overflow-y-auto px-4 pb-4">
         <!-- User Info Card -->
         <Card.Root>
           <Card.Content class="pt-6">
@@ -82,19 +85,19 @@
                 </div>
                 <div class="flex gap-2">
                   {#if user.role === "admin"}
-                    <Badge.Root variant="default" class="gap-1">
+                    <Badge variant="default" class="gap-1">
                       <IconShield class="size-3" />
                       Admin
-                    </Badge.Root>
+                    </Badge>
                   {:else}
-                    <Badge.Root variant="secondary">User</Badge.Root>
+                    <Badge variant="secondary">User</Badge>
                   {/if}
                   {#if user.is_banned}
-                    <Badge.Root variant="destructive">Banned</Badge.Root>
+                    <Badge variant="destructive">Banned</Badge>
                   {:else if user.is_active}
-                    <Badge.Root variant="default">Active</Badge.Root>
+                    <Badge variant="default">Active</Badge>
                   {:else}
-                    <Badge.Root variant="secondary">Inactive</Badge.Root>
+                    <Badge variant="secondary">Inactive</Badge>
                   {/if}
                 </div>
               </div>
@@ -177,22 +180,22 @@
               Ban User
             </Button>
           {/if}
-          <Button variant="outline" onclick={onChangeRole}>
+          <!-- <Button variant="outline" onclick={onChangeRole}>
             <IconShield class="size-4" />
             Change Role
-          </Button>
+          </Button> -->
         </div>
       </div>
     {/if}
 
-    <Drawer.Footer class="flex-row justify-end">
+    <Sheet.Footer class="flex-row justify-end border-t">
       <Button variant="outline" onclick={() => {
         open = false;
         onCancel?.();
       }}>
         Close
       </Button>
-    </Drawer.Footer>
-  </Drawer.Content>
-</Drawer.Root>
+    </Sheet.Footer>
+  </Sheet.Content>
+</Sheet.Root>
 

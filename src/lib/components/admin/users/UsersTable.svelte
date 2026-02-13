@@ -1,12 +1,21 @@
 <script lang="ts">
   import * as Table from "$lib/components/ui/table/index.js";
-  import * as Badge from "$lib/components/ui/badge/index.js";
   import * as Avatar from "$lib/components/ui/avatar/index.js";
-  import { Button } from "$lib/components/ui/button/index.js";
   import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
+  import { buttonVariants } from "$lib/components/ui/button/index.js";
   import type { User } from "$lib/types/user";
-  import { IconDotsVertical, IconUser, IconBan, IconShield, IconEye } from "@tabler/icons-svelte";
+  import {
+    IconDotsVertical,
+    IconUser,
+    IconBan,
+    IconShield,
+    IconEye,
+    IconSettings,
+  } from "@tabler/icons-svelte";
   import { formatCurrency } from "$lib/utils";
+  import { cn } from "$lib/utils";
+  import { goto } from "$app/navigation";
+  import Badge from "$lib/components/ui/badge/badge.svelte";
 
   interface Props {
     users: User[];
@@ -14,15 +23,10 @@
     onBan?: (user: User) => void;
     onUnban?: (user: User) => void;
     onChangeRole?: (user: User) => void;
+    currentUser: User;
   }
 
-  let {
-    users,
-    onView,
-    onBan,
-    onUnban,
-    onChangeRole,
-  }: Props = $props();
+  let { users, onView, onBan, onUnban, onChangeRole, currentUser }: Props = $props();
 
   function getUserDisplayName(user: User): string {
     if (user.display_name) return user.display_name;
@@ -41,6 +45,10 @@
     }
     return user.email.substring(0, 2).toUpperCase();
   }
+
+  $effect(() => {
+    console.log(users);
+  });
 </script>
 
 <Table.Root>
@@ -68,56 +76,72 @@
           <Table.Cell>
             <div class="flex items-center gap-3">
               <Avatar.Root>
-                <Avatar.Image src={user.avatar_url || undefined} alt={getUserDisplayName(user)} />
+                <Avatar.Image
+                  src={user.avatar_url || undefined}
+                  alt={getUserDisplayName(user)}
+                />
                 <Avatar.Fallback>{getUserInitials(user)}</Avatar.Fallback>
               </Avatar.Root>
               <div>
                 <div class="font-medium">{getUserDisplayName(user)}</div>
                 {#if user.company}
-                  <div class="text-xs text-muted-foreground">{user.company}</div>
+                  <div class="text-xs text-muted-foreground">
+                    {user.company}
+                  </div>
                 {/if}
               </div>
             </div>
           </Table.Cell>
-          <Table.Cell class="text-sm text-muted-foreground">{user.email}</Table.Cell>
+          <Table.Cell class="text-sm text-muted-foreground"
+            >{user.email}</Table.Cell
+          >
           <Table.Cell class="text-right">
             <div class="font-medium">{user.total_bids}</div>
             <div class="text-xs text-muted-foreground">
               {formatCurrency(user.total_spent)}
             </div>
           </Table.Cell>
-          <Table.Cell class="text-right font-medium">{user.total_wins}</Table.Cell>
+          <Table.Cell class="text-right font-medium"
+            >{user.total_wins}</Table.Cell
+          >
           <Table.Cell>
             {#if user.role === "admin"}
-              <Badge.Root variant="default" class="gap-1">
+              <Badge variant="default" class="gap-1">
                 <IconShield class="size-3" />
                 Admin
-              </Badge.Root>
+              </Badge>
             {:else}
-              <Badge.Root variant="secondary">User</Badge.Root>
+              <Badge variant="secondary">User</Badge>
             {/if}
           </Table.Cell>
           <Table.Cell>
             {#if user.is_banned}
-              <Badge.Root variant="destructive">Banned</Badge.Root>
+              <Badge variant="destructive">Banned</Badge>
             {:else if user.is_active}
-              <Badge.Root variant="default">Active</Badge.Root>
+              <Badge variant="default">Active</Badge>
             {:else}
-              <Badge.Root variant="secondary">Inactive</Badge.Root>
+              <Badge variant="secondary">Inactive</Badge>
             {/if}
           </Table.Cell>
           <Table.Cell>
             <DropdownMenu.Root>
-              <DropdownMenu.Trigger asChild let:builder>
-                <Button variant="ghost" size="icon" builders={[builder]}>
-                  <IconDotsVertical class="size-4" />
-                  <span class="sr-only">Actions</span>
-                </Button>
+              <DropdownMenu.Trigger
+                class={cn(buttonVariants({ variant: "ghost", size: "icon" }))}
+                type="button"
+              >
+                <IconDotsVertical class="size-4" />
+                <span class="sr-only">Actions</span>
               </DropdownMenu.Trigger>
               <DropdownMenu.Content align="end">
                 <DropdownMenu.Item onclick={() => onView?.(user)}>
                   <IconEye class="size-4" />
                   View Profile
+                </DropdownMenu.Item>
+                <DropdownMenu.Item
+                  onclick={() => goto(`/admin/users/${user.id}`)}
+                >
+                  <IconSettings class="size-4" />
+                  Settings
                 </DropdownMenu.Item>
                 <DropdownMenu.Separator />
                 {#if user.is_banned}
@@ -131,10 +155,12 @@
                     Ban User
                   </DropdownMenu.Item>
                 {/if}
-                <DropdownMenu.Item onclick={() => onChangeRole?.(user)}>
-                  <IconShield class="size-4" />
-                  Change Role
-                </DropdownMenu.Item>
+                {#if currentUser.role === "admin" && user.id !== currentUser.id}
+                  <DropdownMenu.Item onclick={() => onChangeRole?.(user)}>
+                    <IconShield class="size-4" />
+                    Change Role
+                  </DropdownMenu.Item>
+                {/if}
               </DropdownMenu.Content>
             </DropdownMenu.Root>
           </Table.Cell>
@@ -143,4 +169,3 @@
     {/if}
   </Table.Body>
 </Table.Root>
-
