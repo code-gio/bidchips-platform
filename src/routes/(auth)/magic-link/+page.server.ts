@@ -5,7 +5,7 @@ import type { PageServerLoad, Actions } from "./$types.js";
 import { superValidate, fail } from "sveltekit-superforms";
 import { zod4 } from "sveltekit-superforms/adapters";
 import { PUBLIC_APP_URL } from "$env/static/public";
-import { isDevelopment } from "$lib/server/env";
+import { getRedirectOrigin } from "$lib/server/env.js";
 
 import { AuthErrorMessages, type AuthErrorType } from "$lib/types/auth";
 
@@ -20,13 +20,9 @@ const rateLimitStore = new Map<
 >();
 
 export const load: PageServerLoad = async () => {
-  const form = await superValidate(
-    { email: "" },
-    zod4(magicLinkSchema),
-    {
-      id: AUTH_FORM_ID,
-    }
-  );
+  const form = await superValidate(zod4(magicLinkSchema), {
+    id: AUTH_FORM_ID,
+  });
 
   return {
     form,
@@ -69,23 +65,18 @@ export const actions: Actions = {
         });
       }
 
-      // Determine the correct redirect URL
-      // In development, prefer the actual request origin (localhost)
-      // In production, use PUBLIC_APP_URL if set, otherwise use request origin
-      let redirectUrl: string;
-      
-      if (isDevelopment) {
-        // In development, always use the request origin to ensure localhost works
-        const host = event.request.headers.get("host") || event.url.host;
-        const protocol = host?.includes("localhost") ? "http:" : (event.url.protocol || "https:");
-        const origin = `${protocol}//${host}`;
-        redirectUrl = `${origin}/auth/callback`;
-      } else {
-        // In production, use PUBLIC_APP_URL if available, otherwise request origin
-        redirectUrl = PUBLIC_APP_URL 
-          ? `${PUBLIC_APP_URL}/auth/callback`
-          : `${event.url.origin}/auth/callback`;
-      }
+      // Redirect URL: always from request host so the link matches where the user is.
+      // Never use localhost when the request is not from localhost (ignore PUBLIC_APP_URL if it's localhost).
+      const requestOrigin = getRedirectOrigin(event);
+      const appUrl = PUBLIC_APP_URL?.replace(/\/$/, "");
+      const isLocalhost = (url: string) => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/?$/i.test(url);
+      const origin =
+        appUrl && !isLocalhost(appUrl) ? appUrl : requestOrigin;
+      const redirectUrl = `${origin}/auth/callback`;
+
+      // console.log("redirectUrl", redirectUrl);
+
+      // return
 
       // Send magic link
       const { error } = await supabase.auth.signInWithOtp({

@@ -40,7 +40,10 @@
     // },
   ] as const;
 
-  let { selectedGoal = $bindable(null as string | null), onContinue }: {
+  let {
+    selectedGoal = $bindable(null as string | null),
+    onContinue,
+  }: {
     selectedGoal?: string | null;
     onContinue: () => void;
   } = $props();
@@ -48,7 +51,9 @@
 
 <div class="mx-auto flex w-full max-w-4xl flex-col items-center">
   <div class="mb-8 text-center">
-    <h1 class="text-3xl font-medium tracking-tight text-foreground md:text-4xl lg:text-[55px]">
+    <h1
+      class="text-3xl font-medium tracking-tight text-foreground md:text-4xl lg:text-[55px]"
+    >
       What are your goals?
     </h1>
     <p class="mt-3 text-muted-foreground font-semibold">
@@ -62,10 +67,13 @@
         type="button"
         class="relative flex min-h-[140px] flex-col items-start justify-between overflow-hidden rounded-xl border bg-card p-6 text-left shadow-sm transition-[border-color,box-shadow] hover:border-primary/30 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[selected]:border-primary data-[selected]:ring-2 data-[selected]:ring-ring"
         data-selected={selectedGoal === goal.id ? "" : undefined}
-        onclick={() => (selectedGoal = selectedGoal === goal.id ? null : goal.id)}
+        onclick={() =>
+          (selectedGoal = selectedGoal === goal.id ? null : goal.id)}
       >
         <div class="relative z-10 flex flex-col gap-1">
-          <span class="text-2xl font-semibold text-foreground">{goal.title}</span>
+          <span class="text-2xl font-semibold text-foreground"
+            >{goal.title}</span
+          >
           <span class="text-sm text-muted-foreground">{goal.description}</span>
         </div>
         <!-- Imagen anclada abajo-derecha, sobresaliendo; el overflow-hidden del botón la recorta con el borde redondeado -->
@@ -84,7 +92,12 @@
     {/each}
   </div>
 
-  <Button type="button" class="mt-8 min-w-[140px] bg-[#895EFF] text-white rounded-full hover:bg-[#895EFF]/90 cursor-pointer" onclick={onContinue}>
+  <Button
+    type="button"
+    variant="default"
+    class="mt-8 min-w-[140px] cursor-pointer"
+    onclick={onContinue}
+  >
     Continue
   </Button>
 </div>

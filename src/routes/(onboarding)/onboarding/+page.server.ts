@@ -40,14 +40,14 @@ export const load: PageServerLoad = async ({
   // Address fields come only from profile_addresses (default address). Never from profiles.
   const addressInitial = defaultAddress
     ? {
-      country: defaultAddress.country ?? "US",
+      country: defaultAddress.country ?? "us",
       address_street: defaultAddress.street ?? "",
       address_city: defaultAddress.city ?? "",
       address_state: defaultAddress.state ?? "",
       address_zip: defaultAddress.zip ?? "",
     }
     : {
-      country: "US",
+      country: "us",
       address_street: "",
       address_city: "",
       address_state: "",
@@ -56,15 +56,9 @@ export const load: PageServerLoad = async ({
 
   const initial = profile
     ? {
-      onboarding_goal: (profile as { onboarding_goal?: string | null }).onboarding_goal ?? "",
       display_name: profile.display_name ?? "",
-      username: profile.email ?? profile.username ?? "",
-      tagline: profile.tagline ?? "",
-      bio: profile.bio ?? "",
-      language: profile.language ?? "en",
-      time_zone: profile.time_zone ?? "UTC",
+      username: profile.username ?? "",
       ...addressInitial,
-      birth_date: profile.birth_date ?? "",
       avatar_url: avatarUrlToPath(profile.avatar_url) || "",
       avatar_crop_x: profile.avatar_crop_x ?? null,
       avatar_crop_y: profile.avatar_crop_y ?? null,
@@ -74,14 +68,9 @@ export const load: PageServerLoad = async ({
       avatar_image_height: profile.avatar_image_height ?? null,
     }
     : {
-      onboarding_goal: "",
       display_name: "",
-      tagline: "",
-      bio: "",
-      language: "en",
-      time_zone: "UTC",
+      username: "",
       ...addressInitial,
-      birth_date: "",
       avatar_url: "",
       avatar_crop_x: null,
       avatar_crop_y: null,
@@ -95,13 +84,8 @@ export const load: PageServerLoad = async ({
   const profileForClient = profile
     ? await processProfileWithAvatar(supabaseAdmin, {
       display_name: profile.display_name ?? "",
-      username: profile.username ?? profile.email ?? "",
-      tagline: profile.tagline ?? "",
-      bio: profile.bio ?? "",
-      language: profile.language ?? "en",
-      time_zone: profile.time_zone ?? "UTC",
-      country: profile.country ?? "US",
-      birth_date: profile.birth_date ?? "",
+      username: profile.username ?? "",
+      country: profile.country ?? "us",
       avatar_url: avatarUrlToPath(profile.avatar_url) || "",
       avatar_crop_x: profile.avatar_crop_x ?? null,
       avatar_crop_y: profile.avatar_crop_y ?? null,
@@ -113,9 +97,12 @@ export const load: PageServerLoad = async ({
     })
     : null;
 
+  const form = await superValidate(zod4(onboardingSchema), { id: FORM_ID });
+  form.data = { ...form.data, ...initial };
+
   return {
     profile: profileForClient,
-    form: await superValidate(initial, zod4(onboardingSchema), { id: FORM_ID }),
+    form,
   };
 };
 
@@ -135,19 +122,13 @@ export const actions: Actions = {
     }
 
     const {
-      onboarding_goal,
       display_name,
       username,
-      tagline,
-      bio,
-      language,
-      time_zone,
       country,
       address_street,
       address_city,
       address_state,
       address_zip,
-      birth_date,
       avatar_url,
       avatar_crop_x,
       avatar_crop_y,
@@ -157,14 +138,16 @@ export const actions: Actions = {
       avatar_image_height,
     } = form.data;
 
-    const { data: existing } = await supabaseAdmin
-      .from("profiles")
-      .select("id")
-      .eq("username", username)
-      .neq("id", user.id)
-      .maybeSingle();
-    if (existing) {
-      return setError(form, "username", "This username is already taken.");
+    if (username && username.trim() !== "") {
+      const { data: existing } = await supabaseAdmin
+        .from("profiles")
+        .select("id")
+        .eq("username", username)
+        .neq("id", user.id)
+        .maybeSingle();
+      if (existing) {
+        return setError(form, "username", "This username is already taken.");
+      }
     }
 
     const { data: existingDefault } = await supabaseAdmin
@@ -205,15 +188,9 @@ export const actions: Actions = {
     const { error } = await supabaseAdmin
       .from("profiles")
       .update({
-        onboarding_goal: onboarding_goal || null,
         display_name: display_name || null,
-        username,
-        tagline: tagline || null,
-        bio: bio || null,
-        language: language || "en",
-        time_zone,
+        username: username || null,
         country: country || "US",
-        birth_date: birth_date || null,
         avatar_url: avatar_url || null,
         avatar_crop_x: avatar_crop_x ?? null,
         avatar_crop_y: avatar_crop_y ?? null,
@@ -230,7 +207,17 @@ export const actions: Actions = {
       return fail(500, { form, message: error.message });
     }
 
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (profile?.role === "admin") {
+      redirect(303, "/admin");
+    }
+
     const redirectTo = url.searchParams.get("redirectTo");
-    redirect(303, redirectTo && redirectTo.startsWith("/") ? redirectTo : "/");
+    redirect(303, redirectTo && redirectTo.startsWith("/") ? redirectTo : "/dashboard");
   },
 };

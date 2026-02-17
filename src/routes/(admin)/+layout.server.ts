@@ -23,9 +23,9 @@ export const load: LayoutServerLoad = async ({
     redirect(303, "/onboarding?redirectTo=/admin");
   }
 
-  // if (profile.role !== "admin") {
-  //   redirect(303, "/");
-  // }
+  if (profile.role !== "admin") {
+    redirect(303, "/dashboard");
+  }
 
   // Pasar los datos del layout raíz (session, user, profile, etc.) a las rutas admin
   const parentData = await parent();

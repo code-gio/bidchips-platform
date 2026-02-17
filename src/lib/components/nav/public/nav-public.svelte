@@ -1,9 +1,11 @@
 <script lang="ts">
+	import type { Session } from "@supabase/supabase-js";
 	import { navPublic, siteConfig } from "$lib/config";
 	import { Button } from "$lib/components/ui/button/index.js";
 	import * as NavigationMenu from "$lib/components/ui/navigation-menu/index.js";
 	import { cn } from "$lib/utils.js";
 
+	let { session = null }: { session?: Session | null } = $props();
 	let mobileMenuOpen = $state(false);
 
 	function toggleMobileMenu() {
@@ -122,19 +124,25 @@
 				<div
 					class="flex lg:items-center justify-start flex-col lg:flex-row lg:flex-1 lg:justify-end gap-2"
 				>
-					<Button
-						variant="outline"
-						href="/sign-in"
-						class="rounded-full"
-					>
-						Login
-					</Button>
-					<Button
-						href="/sign-up"
-						class="rounded-full"
-					>
-						Sign up
-					</Button>
+					{#if session}
+						<Button href="/dashboard" class="rounded-full">
+							Dashboard
+						</Button>
+					{:else}
+						<Button
+							variant="outline"
+							href="/sign-in"
+							class="rounded-full"
+						>
+							Login
+						</Button>
+						<Button
+							href="/sign-up"
+							class="rounded-full"
+						>
+							Sign up
+						</Button>
+					{/if}
 				</div>
 			</div>
 		</div>

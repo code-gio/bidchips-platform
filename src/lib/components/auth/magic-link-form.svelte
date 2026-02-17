@@ -38,6 +38,7 @@
 
   const form = superForm(props.data, {
     validators: zod4Client(magicLinkSchema),
+    validationMethod: "submit-only",
     clearOnSubmit: "errors-and-message",
     resetForm: false,
     onSubmit: () => {

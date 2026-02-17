@@ -3,6 +3,7 @@ import type { LayoutServerLoad } from "./$types";
 import { supabaseAdmin } from "$lib/server/auth.js";
 
 export const load: LayoutServerLoad = async ({
+  parent,
   locals: { safeGetSession },
   url,
 }) => {
@@ -14,7 +15,7 @@ export const load: LayoutServerLoad = async ({
 
   const { data: profile } = await supabaseAdmin
     .from("profiles")
-    .select("onboarding_completed")
+    .select("onboarding_completed, role")
     .eq("id", user.id)
     .single();
 
@@ -22,7 +23,14 @@ export const load: LayoutServerLoad = async ({
     redirect(303, "/onboarding?redirectTo=" + encodeURIComponent(url.pathname));
   }
 
+  if (profile.role === "admin") {
+    redirect(303, "/admin");
+  }
+
+  const parentData = await parent();
   return {
+    ...parentData,
     url: url.origin,
+    role: profile.role,
   };
 };

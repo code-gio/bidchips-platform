@@ -7,22 +7,19 @@
 
   let { data }: { data: PageData } = $props();
 
-  let step = $state(1 as 1 | 2);
+  let step = $state(2 as 2 | 1);
   let selectedGoal = $state<string | null>(null);
 
   let formDataOverride = $state<Record<string, unknown> | null>(null);
   const formData = $derived.by(() => {
-
     const fromData = {
-      onboarding_goal: selectedGoal ?? (data.profile as { onboarding_goal?: string } | undefined)?.onboarding_goal ?? data.form?.data?.onboarding_goal ?? "",
       display_name: data.profile?.display_name ?? data.form?.data?.display_name ?? "",
-      username: data.profile?.username ??  data.profile?.email ?? "",
-      tagline: data.profile?.tagline ?? data.form?.data?.tagline ?? "",
-      bio: data.profile?.bio ?? data.form?.data?.bio ?? "",
-      language: data.profile?.language ?? data.form?.data?.language ?? "en",
-      time_zone: data.profile?.time_zone ?? data.form?.data?.time_zone ?? "UTC",
-      country: data.profile?.country ?? data.form?.data?.country ?? "US",
-      birth_date: data.profile?.birth_date ?? data.form?.data?.birth_date ?? "",
+      username: data.profile?.username ?? data.form?.data?.username ?? "",
+      country: data.profile?.country ?? data.form?.data?.country ?? "us",
+      address_street: data.form?.data?.address_street ?? "",
+      address_city: data.form?.data?.address_city ?? "",
+      address_state: data.form?.data?.address_state ?? "",
+      address_zip: data.form?.data?.address_zip ?? "",
       avatar_url: data.profile?.avatar_url ?? data.form?.data?.avatar_url ?? "",
       avatar_crop_x: data.profile?.avatar_crop_x ?? data.form?.data?.avatar_crop_x ?? null,
       avatar_crop_y: data.profile?.avatar_crop_y ?? data.form?.data?.avatar_crop_y ?? null,
@@ -38,12 +35,12 @@
   });
 </script>
 
-{#if step === 1}
+<!-- {#if step === 1}
   <OnboardingGoals
     bind:selectedGoal
     onContinue={() => (step = 2)}
   />
-{:else}
+{:else} -->
   <OnboardingLayout
     title="Complete your profile"
     subtitle="Set up your profile."
@@ -55,7 +52,6 @@
       <OnboardingForm
         data={data.form}
         initialData={data.profile}
-        initialGoal={selectedGoal}
         onDataChange={(d) => (formDataOverride = d)}
         onBack={() => (step = 1)}
       />
@@ -64,4 +60,4 @@
       <OnboardingPreview data={previewData} />
     {/snippet}
   </OnboardingLayout>
-{/if}
+<!-- {/if} -->

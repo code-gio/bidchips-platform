@@ -11,6 +11,7 @@ import {
 } from "$lib/types/auth.js";
 import { handleAuthError, handleUnexpectedError } from "$lib/utils/auth-errors";
 import { supabaseAdmin } from "$lib/server/auth.js";
+import { getRedirectOrigin } from "$lib/server/env.js";
 
 const AUTH_FORM_ID = "sign-up-form";
 
@@ -144,7 +145,7 @@ export const actions: Actions = {
             last_name: lastName,
             username: validatedUsername,
           },
-          emailRedirectTo: `${event.url.origin}/auth/callback`,
+          emailRedirectTo: `${getRedirectOrigin(event)}/auth/callback`,
         },
       });
 

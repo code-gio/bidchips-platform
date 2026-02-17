@@ -9,13 +9,10 @@
   import * as Popover from "$lib/components/ui/popover/index.js";
   import * as Command from "$lib/components/ui/command/index.js";
   import { Button } from "$lib/components/ui/button/index.js";
-  import Calendar from "$lib/components/ui/calendar/calendar.svelte";
   import {
     onboardingSchema,
     type OnboardingSchema,
   } from "$lib/schemas/onboarding.js";
-  import { timezones } from "$lib/data/timezones.js";
-  import { languages } from "$lib/data/languages.js";
   import { countries } from "$lib/data/countries.js";
   import {
     type SuperValidated,
@@ -26,17 +23,9 @@
   import { toast } from "svelte-sonner";
   import CheckIcon from "@lucide/svelte/icons/check";
   import ChevronsUpDownIcon from "@lucide/svelte/icons/chevrons-up-down";
-  import ChevronDownIcon from "@lucide/svelte/icons/chevron-down";
   import ChevronLeftIcon from "@lucide/svelte/icons/chevron-left";
   import CameraIcon from "@lucide/svelte/icons/camera";
-  import { tick } from "svelte";
   import { cn } from "$lib/utils.js";
-  import {
-    getLocalTimeZone,
-    today,
-    parseDate,
-    type DateValue,
-  } from "@internationalized/date";
   import AvatarCropDialog from "./avatar-crop-dialog.svelte";
   import AvatarWithCrop from "./avatar-with-crop.svelte";
 
@@ -44,21 +33,18 @@
 
   let {
     data,
-    initialData = null,
-    initialGoal = null,
     onDataChange,
     onBack,
   }: {
     data: SuperValidated<Infer<OnboardingSchema>>;
     initialData?: Record<string, unknown> | null;
-    /** Goal selected in step 1; synced into form so it's submitted */
-    initialGoal?: string | null;
     onDataChange?: (data: Record<string, unknown>) => void;
     onBack?: () => void;
   } = $props();
 
   const form = superForm(data, {
     validators: zod4Client(onboardingSchema),
+    validationMethod: "submit-only",
     onSubmit: () => {},
     onResult: ({ result }) => {
       if (result.type === "failure") {
@@ -72,21 +58,8 @@
   const avatarInputId = "onboarding-avatar-input";
   let isUploadingAvatar = $state(false);
   let avatarCropOpen = $state(false);
-  let timezoneOpen = $state(false);
-  let languageOpen = $state(false);
   let countryOpen = $state(false);
-  let birthDateOpen = $state(false);
-  let timezoneTriggerRef = $state<HTMLButtonElement>(null!);
 
-  let birthDateValue = $state<DateValue | undefined>(undefined);
-
-  const selectedTimezoneLabel = $derived(
-    timezones.find((tz) => tz.value === $formData.time_zone)?.text ??
-      "Timezone",
-  );
-  const selectedLanguageLabel = $derived(
-    languages.find((l) => l.code === $formData.language)?.name ?? "Language",
-  );
   const selectedCountryLabel = $derived(
     countries.find((c) => c.code === $formData.country)?.country ?? "Country",
   );
@@ -103,24 +76,6 @@
     return v;
   });
 
-  $effect(() => {
-    const s = ($formData.birth_date ?? "").trim();
-    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) {
-      try {
-        birthDateValue = parseDate(s);
-      } catch {
-        birthDateValue = undefined;
-      }
-    } else {
-      birthDateValue = undefined;
-    }
-  });
-
-  function closeTimezoneAndFocusTrigger() {
-    timezoneOpen = false;
-    tick().then(() => timezoneTriggerRef?.focus());
-  }
-
   function normalizeErrors(error: unknown): { message?: string }[] | undefined {
     if (!error) return undefined;
     if (typeof error === "string") return [{ message: error }];
@@ -132,28 +87,23 @@
     return [{ message: String(error) }];
   }
 
-  function getInitials(displayName: string, email: string): string {
+  function getInitials(displayName: string, username: string): string {
     const name = (displayName || "").trim();
     if (name) return name.charAt(0).toUpperCase();
-    const e = (email || "").trim();
-    if (e) return e.charAt(0).toUpperCase();
+    const u = (username || "").trim();
+    if (u) return u.charAt(0).toUpperCase();
     return "?";
-  }
-
-  function onBirthDateChange(value: DateValue | undefined) {
-    if (value) {
-      $formData.birth_date = value.toString();
-      birthDateOpen = false;
-    }
   }
 
   $effect(() => {
     onDataChange?.({ ...$formData } as Record<string, unknown>);
   });
 
+  // Default to United States (code "us" from countries data) when country is empty
   $effect(() => {
-    if (initialGoal != null && initialGoal !== "") {
-      $formData.onboarding_goal = initialGoal;
+    const country = ($formData.country ?? "").trim().toLowerCase();
+    if (country === "") {
+      $formData.country = "us";
     }
   });
 
@@ -212,17 +162,9 @@
       isUploadingAvatar = false;
     }
   }
-
-
 </script>
 
 <form method="POST" use:enhance class="flex flex-col space-y-5" novalidate>
-  <input
-    type="hidden"
-    name="onboarding_goal"
-    value={$formData.onboarding_goal ?? ""}
-    aria-hidden="true"
-  />
   <input
     type="hidden"
     name="avatar_url"
@@ -266,9 +208,9 @@
     aria-hidden="true"
   />
 
-  <p class="text-sm text-muted-foreground font-semibold">
+  <!-- <p class="text-sm text-muted-foreground font-semibold">
     Add a photo to help build connection and trust.
-  </p>
+  </p> -->
   <div class="space-y-2">
     <AvatarCropDialog
       bind:open={avatarCropOpen}
@@ -311,7 +253,7 @@
             class="flex h-24 w-24 items-center justify-center rounded-full bg-muted text-2xl text-muted-foreground"
           >
             {#if $formData.avatar_url}
-              {getInitials($formData.display_name ?? "", "")}
+              {getInitials($formData.display_name ?? "", $formData.username ?? "")}
             {:else}
               <CameraIcon class="size-10 text-muted-foreground" />
             {/if}
@@ -360,16 +302,19 @@
           aria-invalid={$errors.username ? "true" : undefined}
         />
       </FieldContent>
-      <!-- <FieldError id="username-error" errors={normalizeErrors($errors.username)} /> -->
+      <FieldError
+        id="username-error"
+        errors={normalizeErrors($errors.username)}
+      />
       <!-- <p class="mt-1 text-xs text-muted-foreground">
         Letters, numbers, underscores and hyphens only.
       </p> -->
     </Field>
   </div>
 
-  <Field>
+  <!-- <Field>
     <FieldContent>
-      <!-- <FieldLabel for="tagline">Tagline <span class="text-muted-foreground">(optional)</span></FieldLabel> -->
+      <FieldLabel for="tagline">Tagline <span class="text-muted-foreground">(optional)</span></FieldLabel>
       <Input
         id="tagline"
         name="tagline"
@@ -378,7 +323,7 @@
         class={inputSizeClass}
       />
     </FieldContent>
-  </Field>
+  </Field> -->
 
   <p class="text-sm text-muted-foreground font-semibold">Address</p>
   <Field>
@@ -398,203 +343,6 @@
       errors={normalizeErrors($errors.address_street)}
     />
   </Field>
-  <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-    <Field>
-      <FieldContent>
-        <Input
-          id="address_city"
-          name="address_city"
-          bind:value={$formData.address_city}
-          placeholder="City"
-          autocomplete="address-level2"
-          class={inputSizeClass}
-          aria-invalid={$errors.address_city ? "true" : undefined}
-        />
-      </FieldContent>
-      <FieldError
-        id="address_city-error"
-        errors={normalizeErrors($errors.address_city)}
-      />
-    </Field>
-    <Field>
-      <FieldContent>
-        <Input
-          id="address_state"
-          name="address_state"
-          bind:value={$formData.address_state}
-          placeholder="State / Province"
-          autocomplete="address-level1"
-          class={inputSizeClass}
-          aria-invalid={$errors.address_state ? "true" : undefined}
-        />
-      </FieldContent>
-      <FieldError
-        id="address_state-error"
-        errors={normalizeErrors($errors.address_state)}
-      />
-    </Field>
-    <Field>
-      <FieldContent>
-        <Input
-          id="address_zip"
-          name="address_zip"
-          bind:value={$formData.address_zip}
-          placeholder="ZIP / Postal code"
-          autocomplete="postal-code"
-          class={inputSizeClass}
-          aria-invalid={$errors.address_zip ? "true" : undefined}
-        />
-      </FieldContent>
-      <FieldError
-        id="address_zip-error"
-        errors={normalizeErrors($errors.address_zip)}
-      />
-    </Field>
-  </div>
-
-  <!-- <Field>
-    <FieldContent>
-      <FieldLabel for="bio">Bio <span class="text-muted-foreground">(optional)</span></FieldLabel>
-      <textarea
-        id="bio"
-        name="bio"
-        bind:value={$formData.bio}
-        placeholder="Tell us a bit about yourself"
-        rows={4}
-        class="border border-input bg-background rounded-lg px-3 py-2 text-base w-full resize-y min-h-[6rem] shadow-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-      ></textarea>
-    </FieldContent>
-  </Field> -->
-
-  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-    <Field>
-      <FieldContent>
-        <!-- <FieldLabel for="language">Language</FieldLabel> -->
-        <input
-          type="hidden"
-          name="language"
-          value={$formData.language}
-          aria-hidden="true"
-        />
-        <Popover.Root bind:open={languageOpen}>
-          <Popover.Trigger>
-            {#snippet child({ props })}
-              <Button
-                {...props}
-                type="button"
-                variant="outline"
-                class="w-full justify-between font-normal {inputSizeClass}"
-                role="combobox"
-                aria-expanded={languageOpen}
-                aria-invalid={$errors.language ? "true" : undefined}
-                id="language"
-              >
-                <span class="truncate text-left">{selectedLanguageLabel}</span>
-                <ChevronsUpDownIcon class="size-4 shrink-0 opacity-50" />
-              </Button>
-            {/snippet}
-          </Popover.Trigger>
-          <Popover.Content class="w-[var(--bits-popover-trigger-width)] p-0">
-            <Command.Root bind:value={$formData.language}>
-              <Command.Input placeholder="Search language..." />
-              <Command.List>
-                <Command.Empty>No language found.</Command.Empty>
-                <Command.Group value="languages">
-                  {#each languages as lang (lang.code)}
-                    <Command.Item
-                      value={lang.code}
-                      keywords={[lang.name, lang.englishName ?? ""]}
-                      onSelect={() => {
-                        $formData.language = lang.code;
-                        languageOpen = false;
-                      }}
-                    >
-                      <CheckIcon
-                        class={cn(
-                          $formData.language !== lang.code &&
-                            "text-transparent",
-                        )}
-                      />
-                      <span class="mr-2">{lang.flag}</span>
-                      {lang.name}
-                    </Command.Item>
-                  {/each}
-                </Command.Group>
-              </Command.List>
-            </Command.Root>
-          </Popover.Content>
-        </Popover.Root>
-      </FieldContent>
-      <FieldError
-        id="language-error"
-        errors={normalizeErrors($errors.language)}
-      />
-    </Field>
-
-    <Field>
-      <FieldContent>
-        <!-- <FieldLabel for="time_zone">Timezone</FieldLabel> -->
-        <input
-          type="hidden"
-          name="time_zone"
-          value={$formData.time_zone}
-          aria-hidden="true"
-        />
-        <Popover.Root bind:open={timezoneOpen}>
-          <Popover.Trigger bind:ref={timezoneTriggerRef}>
-            {#snippet child({ props })}
-              <Button
-                {...props}
-                type="button"
-                variant="outline"
-                class="w-full justify-between font-normal {inputSizeClass}"
-                role="combobox"
-                aria-expanded={timezoneOpen}
-                aria-invalid={$errors.time_zone ? "true" : undefined}
-                id="time_zone"
-              >
-                <span class="truncate text-left">{selectedTimezoneLabel}</span>
-                <ChevronsUpDownIcon class="size-4 shrink-0 opacity-50" />
-              </Button>
-            {/snippet}
-          </Popover.Trigger>
-          <Popover.Content class="w-[var(--bits-popover-trigger-width)] p-0">
-            <Command.Root bind:value={$formData.time_zone}>
-              <Command.Input placeholder="Search timezone..." />
-              <Command.List>
-                <Command.Empty>No timezone found.</Command.Empty>
-                <Command.Group value="timezones">
-                  {#each timezones as tz, i (i)}
-                    <Command.Item
-                      value={tz.value}
-                      keywords={[tz.text]}
-                      onSelect={() => {
-                        $formData.time_zone = tz.value;
-                        closeTimezoneAndFocusTrigger();
-                      }}
-                    >
-                      <CheckIcon
-                        class={cn(
-                          $formData.time_zone !== tz.value &&
-                            "text-transparent",
-                        )}
-                      />
-                      {tz.text}
-                    </Command.Item>
-                  {/each}
-                </Command.Group>
-              </Command.List>
-            </Command.Root>
-          </Popover.Content>
-        </Popover.Root>
-      </FieldContent>
-      <FieldError
-        id="time_zone-error"
-        errors={normalizeErrors($errors.time_zone)}
-      />
-    </Field>
-  </div>
-
   <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
     <Field>
       <FieldContent>
@@ -657,74 +405,79 @@
         errors={normalizeErrors($errors.country)}
       />
     </Field>
-
     <Field>
       <FieldContent>
-        <!-- <FieldLabel for="birth_date">Birth date</FieldLabel> -->
-        <input
-          type="hidden"
-          name="birth_date"
-          value={$formData.birth_date}
-          aria-hidden="true"
+        <Input
+          id="address_state"
+          name="address_state"
+          bind:value={$formData.address_state}
+          placeholder="State / Province"
+          autocomplete="address-level1"
+          class={inputSizeClass}
+          aria-invalid={$errors.address_state ? "true" : undefined}
         />
-        <Popover.Root bind:open={birthDateOpen}>
-          <Popover.Trigger id="birth_date">
-            {#snippet child({ props })}
-              <Button
-                {...props}
-                type="button"
-                variant="outline"
-                class="w-full justify-between font-normal {inputSizeClass}"
-                aria-invalid={$errors.birth_date ? "true" : undefined}
-              >
-                {#if $formData.birth_date}
-                  {new Date(
-                    $formData.birth_date + "T12:00:00.000Z",
-                  ).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                {:else}
-                  Select date
-                {/if}
-                <ChevronDownIcon class="size-4 shrink-0 opacity-50" />
-              </Button>
-            {/snippet}
-          </Popover.Trigger>
-          <Popover.Content class="w-auto p-0" align="start">
-            <Calendar
-              type="single"
-              bind:value={birthDateValue}
-              captionLayout="dropdown"
-              maxValue={today(getLocalTimeZone())}
-              onValueChange={onBirthDateChange}
-            />
-          </Popover.Content>
-        </Popover.Root>
       </FieldContent>
       <FieldError
-        id="birth_date-error"
-        errors={normalizeErrors($errors.birth_date)}
+        id="address_state-error"
+        errors={normalizeErrors($errors.address_state)}
+      />
+    </Field>
+  </div>
+
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <Field>
+      <FieldContent>
+        <Input
+          id="address_city"
+          name="address_city"
+          bind:value={$formData.address_city}
+          placeholder="City"
+          autocomplete="address-level2"
+          class={inputSizeClass}
+          aria-invalid={$errors.address_city ? "true" : undefined}
+        />
+      </FieldContent>
+      <FieldError
+        id="address_city-error"
+        errors={normalizeErrors($errors.address_city)}
+      />
+    </Field>
+    <Field>
+      <FieldContent>
+        <Input
+          id="address_zip"
+          name="address_zip"
+          bind:value={$formData.address_zip}
+          placeholder="ZIP / Postal code"
+          autocomplete="postal-code"
+          class={inputSizeClass}
+          aria-invalid={$errors.address_zip ? "true" : undefined}
+        />
+      </FieldContent>
+      <FieldError
+        id="address_zip-error"
+        errors={normalizeErrors($errors.address_zip)}
       />
     </Field>
   </div>
 
   <div class="mt-6 flex flex-wrap items-center gap-4">
-    {#if onBack}
+    <!-- {#if onBack}
       <Button
         type="button"
         size="icon"
+        variant="outline"
         onclick={onBack}
         aria-label="Back"
-        class="bg-[#895EFF]/30 text-white rounded-full hover:bg-[#895EFF]/90 cursor-pointer"
+        class=" cursor-pointer"
       >
         <ChevronLeftIcon class="size-4 text-white" />
       </Button>
-    {/if}
+    {/if} -->
     <Button
       type="submit"
-      class="min-w-[180px] bg-[#895EFF] text-white rounded-full hover:bg-[#895EFF]/90 cursor-pointer"
+      variant="default"
+      class="min-w-[180px]  cursor-pointer"
     >
       Complete onboarding
     </Button>

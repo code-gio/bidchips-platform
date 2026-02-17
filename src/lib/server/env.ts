@@ -69,3 +69,19 @@ export const isDevelopment = process.env.NODE_ENV === "development";
  * Helper to check if we're in production mode
  */
 export const isProduction = process.env.NODE_ENV === "production";
+
+/**
+ * Origin for auth redirects (magic link, sign-up confirmation).
+ * Uses the request's host so the link is dynamic: localhost in dev, production host in prod.
+ * Respects X-Forwarded-Proto/Host when behind a reverse proxy.
+ */
+export function getRedirectOrigin(event: { url: URL; request: Request }): string {
+  const proto = event.request.headers.get("x-forwarded-proto");
+  const host = event.request.headers.get("x-forwarded-host");
+  if (proto && host) {
+    const scheme = proto.split(",")[0].trim();
+    const hostname = host.split(",")[0].trim();
+    return `${scheme}://${hostname}`;
+  }
+  return event.url.origin;
+}

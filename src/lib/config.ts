@@ -81,7 +81,7 @@ export const navPublic: NavItem[] = [
 export const navMain: NavItem[] = [
   {
     title: "Dashboard",
-    url: "/account",
+    url: "/dashboard",
     icon: IconDashboard,
   },
   {
