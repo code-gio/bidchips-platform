@@ -4,7 +4,6 @@ import { redirect } from "@sveltejs/kit";
 import type { PageServerLoad, Actions } from "./$types.js";
 import { superValidate, fail } from "sveltekit-superforms";
 import { zod4 } from "sveltekit-superforms/adapters";
-import { PUBLIC_APP_URL } from "$env/static/public";
 import { getRedirectOrigin } from "$lib/server/env.js";
 
 import { AuthErrorMessages, type AuthErrorType } from "$lib/types/auth";
@@ -65,19 +64,14 @@ export const actions: Actions = {
         });
       }
 
-      // Redirect URL: always from the request host so the link matches where the user sent it (dynamic).
-      // Prefer request origin when it's not localhost; use PUBLIC_APP_URL only as fallback in dev.
-      const requestOrigin = getRedirectOrigin(event);
-      const appUrl = PUBLIC_APP_URL?.replace(/\/$/, "");
-      const isLocalhost = (url: string) => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/?$/i.test(url);
-      const origin = !isLocalhost(requestOrigin)
-        ? requestOrigin
-        : (appUrl || requestOrigin);
+      // Redirect URL: always from the current request host (dynamic — no env needed).
+      const origin = getRedirectOrigin(event);
       const redirectUrl = `${origin}/auth/callback`;
 
-      // console.log("redirectUrl", redirectUrl);
+      console.log("origin", origin);
+      console.log("redirectUrl", redirectUrl);
 
-      // return
+      // return;
 
       // Send magic link
       const { error } = await supabase.auth.signInWithOtp({
