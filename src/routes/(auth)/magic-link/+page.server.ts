@@ -65,13 +65,14 @@ export const actions: Actions = {
         });
       }
 
-      // Redirect URL: always from request host so the link matches where the user is.
-      // Never use localhost when the request is not from localhost (ignore PUBLIC_APP_URL if it's localhost).
+      // Redirect URL: always from the request host so the link matches where the user sent it (dynamic).
+      // Prefer request origin when it's not localhost; use PUBLIC_APP_URL only as fallback in dev.
       const requestOrigin = getRedirectOrigin(event);
       const appUrl = PUBLIC_APP_URL?.replace(/\/$/, "");
       const isLocalhost = (url: string) => /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/?$/i.test(url);
-      const origin =
-        appUrl && !isLocalhost(appUrl) ? appUrl : requestOrigin;
+      const origin = !isLocalhost(requestOrigin)
+        ? requestOrigin
+        : (appUrl || requestOrigin);
       const redirectUrl = `${origin}/auth/callback`;
 
       // console.log("redirectUrl", redirectUrl);

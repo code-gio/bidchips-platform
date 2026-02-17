@@ -73,15 +73,24 @@ export const isProduction = process.env.NODE_ENV === "production";
 /**
  * Origin for auth redirects (magic link, sign-up confirmation).
  * Uses the request's host so the link is dynamic: localhost in dev, production host in prod.
- * Respects X-Forwarded-Proto/Host when behind a reverse proxy.
+ * Respects X-Forwarded-Proto/Host when behind a reverse proxy (e.g. Cloudflare).
+ * Falls back to Host header then event.url.origin so it works on edge/serverless.
  */
 export function getRedirectOrigin(event: { url: URL; request: Request }): string {
   const proto = event.request.headers.get("x-forwarded-proto");
   const host = event.request.headers.get("x-forwarded-host");
   if (proto && host) {
-    const scheme = proto.split(",")[0].trim();
+    const scheme = proto.split(",")[0].trim().toLowerCase() || "https";
     const hostname = host.split(",")[0].trim();
     return `${scheme}://${hostname}`;
+  }
+  const hostHeader = event.request.headers.get("host");
+  if (hostHeader) {
+    const isLocalHost = /^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(hostHeader.split(":")[0] ?? "");
+    const scheme = isLocalHost
+      ? (event.url.protocol.replace(":", "") || "http")
+      : "https";
+    return `${scheme}://${hostHeader}`;
   }
   return event.url.origin;
 }
